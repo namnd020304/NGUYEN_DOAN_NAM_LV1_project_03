@@ -3,7 +3,7 @@ from faker import Faker
 from config import load_config
 import random
 from datetime import datetime
-
+from products import manipulate_product
 fake = Faker()
 config = load_config()
 
@@ -60,10 +60,6 @@ class Order:
             return None
 
     def insert_order_item(self, item_name, quantity):
-        if not self.order_id:
-            print("Chưa có order_id. Cần insert order trước!")
-            return False
-
         data = self.check_product(item_name, quantity)
         if not data:
             return False
@@ -84,7 +80,7 @@ class Order:
                 conn.commit()
             return True
         except psycopg2.Error as e:
-            print(f"Error inserting order item: {e}")
+            print(e)
             return False
 
     def update_total_amount(self):
@@ -98,7 +94,7 @@ class Order:
                 conn.commit()
             return True
         except psycopg2.Error as e:
-            print(f"Error updating total amount: {e}")
+            print(e)
             return False
 
     def run(self):
@@ -106,11 +102,14 @@ class Order:
             print("Không thể tạo order")
             return
 
-        print(f"Đã tạo order với ID: {self.order_id}")
+        print(f"Da tao order_id: {self.order_id}")
+        prod_name = input("Nhap ten hang muon lay: ")
+        quantity = int(input("Nhap so luong: "))
+        manipulate_product('lay', prod_name, quantity)
+        self.insert_order_item(prod_name, quantity)
 
-        self.insert_order_item('Inverse local definition', 13)
         self.update_total_amount()
-        print(f"Hoàn thành order với tổng tiền: {self.total_amount}")
+        print(f"total: {self.total_amount}")
 
 
 def take_seller():
@@ -124,7 +123,7 @@ def take_seller():
                 sellers = [x[0] for x in seller_raw]
         return sellers
     except psycopg2.Error as e:
-        print(f"Error getting sellers: {e}")
+        print(e)
         return []
 
 
@@ -132,6 +131,8 @@ if __name__ == "__main__":
     sellers = take_seller()
     if sellers:
         order = Order(sellers)
-        order.run()
+        num_prod = int(input("Nhap loai hang can lay: "))
+        for i in range(num_prod):
+            order.run()
     else:
-        print("Không có sellers trong database")
+        print("Khong co sellers trong database")

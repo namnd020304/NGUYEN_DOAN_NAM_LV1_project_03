@@ -62,43 +62,45 @@ class Product:
             print(e)
 
 
-def manipulate_product():
-    while True:
-        print('=======THEM/LAY/THOAT hang=======')
-        chose = input("Lua chon Them/Lay")
-        prod_name = input("Nhap ten hang can lay: ")
-        prod_name = prod_name.strip()
-        quantity = int(input("So luong: "))
-        sql = '''
-              select stock_qty \
-              from products \
-              where product_name = %s'''
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, [prod_name,])
-                stock_qty = cur.fetchone()[0]
-                print(f'So luong san pham {prod_name} Ban dau {stock_qty}')
-        if chose == 'Them':
-            stock_qty += int(quantity)
-        elif chose == 'Lay':
-            if stock_qty > int(quantity):
-                stock_qty -= int(quantity)
-            else:
-                print("Khong du so luong muon lay")
-        elif chose == 'THOAT':
-            break
+def manipulate_product(choose, prod_name, quantity):
+
+    sql = '''
+          select stock_qty \
+          from products \
+          where product_name = %s'''
+    with psycopg2.connect(**config) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, [prod_name,])
+            stock_qty = cur.fetchone()[0]
+            print(f'So luong san pham {prod_name} Ban dau {stock_qty}')
+    if choose.lower() == 'them':
+        stock_qty += int(quantity)
+    elif choose.lower() == 'lay':
+        if stock_qty > int(quantity):
+            stock_qty -= int(quantity)
         else:
-            print('Loi cu phap')
-        sql = '''
-        UPDATE products SET stock_qty = %s WHERE product_name = %s'''
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, [stock_qty, prod_name,])
-        print(f'So san pham {prod_name} hien co {stock_qty}')
+            print("Khong du so luong muon lay")
+    sql = '''
+    UPDATE products SET stock_qty = %s WHERE product_name = %s'''
+    with psycopg2.connect(**config) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, [stock_qty, prod_name,])
+    print(f'So san pham {prod_name} hien co {stock_qty}')
 
 
 
 if __name__ == '__main__':
-    manipulate_product()
+    while True:
+        print('=======THEM/LAY/THOAT hang=======')
+        choose = input("Lua chon Them/Lay")
+        if choose.lower() == 'them' or choose.lower() == 'lay':
+            prod_name = input("Nhap ten hang can lay: ")
+            prod_name = prod_name.strip()
+            quantity = int(input("So luong: "))
+            manipulate_product(choose, prod_name, quantity)
+        elif choose.lower() == 'exit':
+            break
+        else:
+            print('Loi cu phap')
 
 
